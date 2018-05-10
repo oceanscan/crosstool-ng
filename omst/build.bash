@@ -54,20 +54,24 @@ build()
 # Change to crosstool-ng folder.
 cd "$BASE" || die "changed to base folder"
 
-if [ "$1" == "bootstrap" ]; then
-    container_create || die "create container"
+case "$1" in
+    build)
+        xtool_bootstrap
+        build
+        ;;
 
-    docker run \
-           --read-only \
-           --tmpfs /run \
-           --tmpfs /tmp \
-           -v "$BASE:/xtool" \
-           -i \
-           -a stdin \
-           -a stdout \
-           -t "crosstool-ng" \
-           /bin/bash
-else
-    xtool_bootstrap
-    build
-fi
+    *)
+        container_create || die "create container"
+
+        docker run \
+               --read-only \
+               --tmpfs /run \
+               --tmpfs /tmp \
+               -v "$BASE:/xtool" \
+               -i \
+               -a stdin \
+               -a stdout \
+               -t "crosstool-ng" \
+               /bin/bash /xtool/omst/build.bash build
+        ;;
+esac
