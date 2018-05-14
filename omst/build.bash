@@ -3,7 +3,7 @@
 VERSION='2018.05.00'
 BASE="$(readlink -f "$(dirname "$BASH_SOURCE")/..")"
 DST="$BASE/dist"
-TCHAINS='omst-rpi3'
+TCHAINS='omst-rpi3 omst-geode'
 
 export PATH="$BASE/local/bin:$PATH"
 
