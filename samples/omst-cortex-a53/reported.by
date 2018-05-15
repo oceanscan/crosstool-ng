@@ -1,3 +1,10 @@
 reporter_name="Ricardo Martins <rasm@oceanscan-mst.com>"
 reporter_url="http://www.oceanscan-mst.com"
-reporter_comment="Configuration for ARM Cortex-A53 processors with NEON and VFPv4 (Raspberry Pi 2 and 3)"
+reporter_comment="Configuration for ARM Cortex-A53 (ARMv8-A 64/32-bit)
+processors with NEON and VFPv4.
+
+Comaptible boards:
+ - Raspberry Pi 2 Model B v1.2
+ - Raspberry Pi 3 Model B v1.2
+ - Raspberry Pi 3 Model B+
+"

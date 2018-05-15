@@ -1,3 +1,13 @@
 reporter_name="Ricardo Martins <rasm@oceanscan-mst.com>"
 reporter_url="http://www.oceanscan-mst.com"
-reporter_comment="Configuration for ARM Cortex-A8 processors with NEON and VFPv3 (BeableBone Black, IGEPv2)"
+reporter_comment="Configuration for ARM Cortex-A8 (ARMv7-A 32-bit)
+processors with NEON and VFPv3.
+
+Compatible boards:
+ - Raspberry Pi 2 Model B v1.1
+ - BeagleBone Black
+ - IGEPv2
+
+This toolchain is also compatible with Cortex-A53 boards, albeit not
+making full use of the silicon.
+"
