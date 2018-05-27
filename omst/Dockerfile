@@ -20,7 +20,7 @@
 # Author: Ricardo Martins                                                 #
 ###########################################################################
 
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 MAINTAINER Ricardo Martins <rasm@oceanscan-mst.com>
 
@@ -46,6 +46,5 @@ RUN apt-get update -y && apt-get dist-upgrade -y && apt-get install -y \
     flex \
     make \
     libtool \
+    libtool-bin \
     libncurses-dev
-
-RUN useradd -m omst
