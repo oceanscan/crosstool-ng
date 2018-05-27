@@ -36,7 +36,7 @@ build()
     for t in $TCHAINS; do
         ct-ng "$t" || die "configure $t"
         echo 'CT_ALLOW_BUILD_AS_ROOT_SURE=y' >> .config || die "override config"
-        echo "CT_LOCAL_TARBALLS_DIR=$DST" >> .config || die "override config"
+        echo "CT_LOCAL_TARBALLS_DIR=$BASE/src" >> .config || die "override config"
         echo "CT_PREFIX_DIR=$DST/"'${CT_TARGET}'"-${VERSION}" >> .config || die "override config"
         ct-ng build.8 || die "build toolchain $t"
     done
