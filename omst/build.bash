@@ -3,7 +3,7 @@
 VERSION='2018.05.00'
 BASE="$(readlink -f "$(dirname "$BASH_SOURCE")/..")"
 DST="$BASE/dist"
-TCHAINS='omst-i686 omst-amd64 omst-cortex-a53 omst-cortex-a8 omst-geode omst-goldmont'
+TCHAINS='omst-p6 omst-amd64 omst-cortexa53 omst-cortexa8 omst-geode omst-goldmont'
 
 export PATH="$BASE/local/bin:$PATH"
 
