@@ -37,3 +37,6 @@ testing/docker/build-*
 .build-all/
 # .. and release creation
 release/
+
+/dist
+/local
