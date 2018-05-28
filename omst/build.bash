@@ -2,8 +2,11 @@
 
 VERSION='2018.05.00'
 BASE="$(readlink -f "$(dirname "$BASH_SOURCE")/..")"
+GIT_REV=`git -C $BASE rev-parse --short HEAD`
+FULL_VERSION="$VERSION-$GIT_REV"
 DST="$BASE/dist"
-TCHAINS='omst-p6 omst-amd64 omst-cortexa53 omst-cortexa8 omst-geode omst-goldmont'
+#TCHAINS='omst-p6 omst-amd64 omst-cortexa53 omst-cortexa8 omst-geode omst-goldmont'
+TCHAINS='omst-p6'
 
 export PATH="$BASE/local/bin:$PATH"
 
@@ -35,6 +38,8 @@ build()
     # Build toolchains.
     for t in $TCHAINS; do
         ct-ng "$t" || die "configure $t"
+        echo "CT_SHOW_CT_VERSION=n" >> .config || die "override config"
+        echo "CT_TOOLCHAIN_PKGVERSION=$FULL_VERSION" >> .config || die "override config"
         echo 'CT_ALLOW_BUILD_AS_ROOT_SURE=y' >> .config || die "override config"
         echo "CT_LOCAL_TARBALLS_DIR=$BASE/src" >> .config || die "override config"
         echo "CT_PREFIX_DIR=$DST/"'${CT_TARGET}'"-${VERSION}" >> .config || die "override config"
