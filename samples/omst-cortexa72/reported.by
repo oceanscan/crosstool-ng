@@ -1,0 +1,7 @@
+reporter_name="Tiago Marques <tmarques@oceanscan-mst.com>"
+reporter_url="http://www.oceanscan-mst.com"
+reporter_comment="Configuration for ARM Cortex-A72 (ARMv8-A 64/32-bit)
+
+Tested boards:
+ - Raspberry Pi 4 Model B
+"
