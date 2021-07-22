@@ -20,6 +20,9 @@ To clone the crosstool-NG repository:
 git clone https://github.com/crosstool-ng/crosstool-ng
 ```
 
+## Build Status
+- ![CI](https://github.com/crosstool-ng/crosstool-ng/workflows/CI/badge.svg)
+
 #### Old repositories
 
 These are the old Mercurial repositories. They are now read-only: [http://crosstool-ng.org/hg/](http://crosstool-ng.org/hg/)
@@ -87,7 +90,7 @@ git checkout -b fix_out_of_date_patch origin/1.22
 ```
  Then when you get to this pull request screen change the base branch from `master` to `1.22`
 
-- By creating a pull request, the PR is entered into the [backlog](https://waffle.io/crosstool-ng/crosstool-ng). A [travis-ci](https://travis-ci.org/crosstool-ng/crosstool-ng/builds) job will run to test your changes against a select set of samples. As they start to get worked, they should be placed in the `Ready` state. PRs that are being worked are `In Progress`. If a questions come up about the commit that might envolve changes to the commit then the PR is placed in `Waiting For Response`, you have two options:
+- By creating a pull request, the PR is entered into the [backlog](https://waffle.io/crosstool-ng/crosstool-ng). A [travis-ci](https://travis-ci.org/crosstool-ng/crosstool-ng/builds) job will run to test your changes against a select set of samples. As they start to get worked, they should be placed in the `Ready` state. PRs that are being worked are `In Progress`. If a questions come up about the commit that might involve changes to the commit then the PR is placed in `Waiting For Response`, you have two options:
  1. Fix the issue with the commit by adding a new commit in the topic branch that fixes the code review. Then push your changes to your branch. This option keeps the comments in the PR, and allows for further code review. I personally dislike this, because people are lazy and fix reviews with `fix more review issues`. Please make good commit messages! All rules about commits from above apply! **THIS IS PREFERED**
 
 
@@ -153,15 +156,4 @@ Report issues at [the project site on GitHub](https://github.com/crosstool-ng/cr
 
 We have a [mailing list](mailto:crossgcc@sourceware.org). Archive and subscription info can be found here: [https://sourceware.org/ml/crossgcc/](https://sourceware.org/ml/crossgcc/)
 
-We are also available on IRC: irc.freenode.net #crosstool-ng.
-
 Aloha! :-)
-
-[![Build Status][travis-status]][travis]
-
-[![Throughput Graph](https://graphs.waffle.io/crosstool-ng/crosstool-ng/throughput.svg)](https://waffle.io/crosstool-ng/crosstool-ng/metrics/throughput)
-
-[![Stories in Ready](https://badge.waffle.io/crosstool-ng/crosstool-ng.png?label=ready&title=Ready)](https://waffle.io/crosstool-ng/crosstool-ng) [![Stories in Waiting For Response](https://badge.waffle.io/crosstool-ng/crosstool-ng.png?label=waiting%20for%20response&title=Waiting%20For%20Response)](https://waffle.io/crosstool-ng/crosstool-ng) [![Stories in In Progress](https://badge.waffle.io/crosstool-ng/crosstool-ng.png?label=in%20progress&title=In%20Progress)](https://waffle.io/crosstool-ng/crosstool-ng)
-
-[travis]: https://travis-ci.org/crosstool-ng/crosstool-ng
-[travis-status]: https://travis-ci.org/crosstool-ng/crosstool-ng.svg

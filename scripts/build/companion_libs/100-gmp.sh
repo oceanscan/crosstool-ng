@@ -87,6 +87,15 @@ do_gmp_backend() {
         extra_config+=("--enable-mpbsd")
     fi
 
+    # To avoind “illegal text-relocation” linking error against
+    # the static library, see:
+    #     https://github.com/Homebrew/homebrew-core/pull/25470
+    case "${host}" in
+        *darwin*)
+            extra_config+=("--with-pic")
+            ;;
+    esac
+
     # FIXME: GMP's configure script doesn't respect the host parameter
     # when not cross-compiling, ie when build == host.
     CT_DoExecLog CFG                                \
@@ -105,12 +114,12 @@ do_gmp_backend() {
         "${extra_config[@]}"
 
     CT_DoLog EXTRA "Building GMP"
-    CT_DoExecLog ALL make ${JOBSFLAGS}
+    CT_DoExecLog ALL make ${CT_JOBSFLAGS}
 
     if [ "${CT_COMPLIBS_CHECK}" = "y" ]; then
         if [ "${host}" = "${CT_BUILD}" ]; then
             CT_DoLog EXTRA "Checking GMP"
-            CT_DoExecLog ALL make ${JOBSFLAGS} -s check
+            CT_DoExecLog ALL make ${CT_JOBSFLAGS} -s check
         else
             # Cannot run host binaries on build in a canadian cross
             CT_DoLog EXTRA "Skipping check for GMP on the host"

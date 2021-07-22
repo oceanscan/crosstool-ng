@@ -70,6 +70,7 @@ CT_DoArchUClibcConfig() {
                 ;;
             thumb)
                 CT_KconfigEnableOption "COMPILE_IN_THUMB_MODE" "${cfg}"
+                CT_KconfigDisableOption "UCLIBC_HAS_CONTEXT_FUNCS" "${cfg}"
                 ;;
         esac
         # FIXME: CONFIG_ARM_OABI does not exist in neither uClibc/uClibc-ng
@@ -96,6 +97,7 @@ CT_DoArchUClibcCflags() {
         case "${f}" in
             -mthumb)
                 CT_KconfigEnableOption "COMPILE_IN_THUMB_MODE" "${cfg}"
+                CT_KconfigDisableOption "UCLIBC_HAS_CONTEXT_FUNCS" "${cfg}"
                 ;;
             -marm)
                 CT_KconfigDisableOption "COMPILE_IN_THUMB_MODE" "${cfg}"
