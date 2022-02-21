@@ -3,7 +3,7 @@
 
 ## depends on ! WINDOWS && ! BARE_METAL && ARCH_USE_MMU
 ## select LIBC_SUPPORT_THREADS_NATIVE
-## select CC_CORE_PASSES_NEEDED
+## select CC_CORE_NEEDED
 # TBD: select GETTEXT for build only, not for host
 ## select GETTEXT_NEEDED
 ## select BINUTILS_FORCE_LD_BFD_DEFAULT
@@ -59,11 +59,13 @@ config GLIBC_DEP_PYTHON
     def_bool y
     select GLIBC_REQUIRE_older_than_2_29 if !CONFIGURE_has_python_3_4_or_newer
 
+comment "glibc >=2.29 requires python >3.4"
+    depends on !CONFIGURE_has_python_3_4_or_newer
+
 config GLIBC_DEP_MAKE_4_0
     def_bool y
     depends on GLIBC_2_28_or_later && !CONFIGURE_has_make_4_0_or_newer
     select COMP_TOOLS_MAKE
-    select MAKE_REQUIRE_4_0_or_later
     select MAKE_GNUMAKE_SYMLINK # Override old host make in .build/tools/bin
 
 # Glibc 2.31 removed support for pre-v8 SPARC in 32-bit mode (64-bit mode always
@@ -404,9 +406,6 @@ config GLIBC_SSP
 # GCC8-related fixes were only available in glibc 2.27.
 config GLIBC_ENABLE_WERROR
     bool "Enable -Werror during the build"
-    default n if GLIBC_2_32_or_later && ARCH_POWERPC && ARCH_64
-    default n if GLIBC_2_32_or_later && ARCH_SPARC
-    default n if GLIBC_2_32_or_later && GCC_11_or_later
     default y if GCC_7_or_older
     default y if GCC_8_or_later && GLIBC_2_27_or_later
     help
