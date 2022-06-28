@@ -43,6 +43,7 @@ cc_gcc_lang_list() {
     [ "${CT_CC_LANG_CXX}" = "y"      ] && lang_list+=",c++"
     [ "${CT_CC_LANG_FORTRAN}" = "y"  ] && lang_list+=",fortran"
     [ "${CT_CC_LANG_ADA}" = "y"      ] && lang_list+=",ada"
+    [ "${CT_CC_LANG_D}" = "y"      ] && lang_list+=",d"
     [ "${CT_CC_LANG_JAVA}" = "y"     ] && lang_list+=",java"
     [ "${CT_CC_LANG_OBJC}" = "y"     ] && lang_list+=",objc"
     [ "${CT_CC_LANG_OBJCXX}" = "y"   ] && lang_list+=",obj-c++"
@@ -262,6 +263,8 @@ do_gcc_core_backend() {
     local -a core_targets_install
     local -a extra_user_config
     local arg
+    local file
+    local ext
 
     for arg in "$@"; do
         eval "${arg// /\\ }"
@@ -375,6 +378,11 @@ do_gcc_core_backend() {
         extra_config+=(--disable-libquadmath-support)
     fi
 
+    case "${CT_CC_GCC_LIBSTDCXX_VERBOSE}" in
+        y)  extra_config+=("--enable-libstdcxx-verbose");;
+        "") extra_config+=("--disable-libstdcxx-verbose");;
+    esac
+
     if [ "${build_libstdcxx}" = "no" ]; then
         extra_config+=(--disable-libstdcxx)
     fi
@@ -391,12 +399,6 @@ do_gcc_core_backend() {
             host_libstdcxx_flags+=("-Wl,-Bstatic,-lstdc++")
             host_libstdcxx_flags+=("-lm")
         fi
-        # Companion libraries are build static (eg !shared), so
-        # the libstdc++ is not pulled automatically, although it
-        # is needed. Shoe-horn it in our LDFLAGS
-        # Ditto libm on some Fedora boxen
-        core_LDFLAGS+=("-lstdc++")
-        core_LDFLAGS+=("-lm")
     else
         if [ "${CT_CC_GCC_STATIC_LIBSTDCXX}" = "y" -a "${CT_GCC_older_than_6}" = "y" ]; then
             # this is from CodeSourcery arm-2010q1-202-arm-none-linux-gnueabi.src.tar.bz2
@@ -407,12 +409,6 @@ do_gcc_core_backend() {
             host_libstdcxx_flags+=("-Wl,-Bstatic,-lstdc++,-Bdynamic")
             host_libstdcxx_flags+=("-lm")
         fi
-        # When companion libraries are build static (eg !shared),
-        # the libstdc++ is not pulled automatically, although it
-        # is needed. Shoe-horn it in our LDFLAGS
-        # Ditto libm on some Fedora boxen
-        core_LDFLAGS+=("-lstdc++")
-        core_LDFLAGS+=("-lm")
     fi
 
     extra_config+=("--with-gmp=${complibs}")
@@ -605,6 +601,12 @@ do_gcc_core_backend() {
         --enable-languages="${lang_list}"              \
         "${extra_user_config[@]}"
 
+    gcc_core_build_libcpp=all-build-libcpp
+    # disable target all-build-libcpp in gcc older verions
+    if [ "${CT_GCC_older_than_5}" = "y" ]; then
+        gcc_core_build_libcpp=""
+    fi
+
     if [ "${build_libgcc}" = "yes" ]; then
         # HACK: we need to override SHLIB_LC from gcc/config/t-slibgcc-elf-ver or
         # gcc/config/t-libunwind so -lc is removed from the link for
@@ -626,10 +628,10 @@ do_gcc_core_backend() {
             CT_DoExecLog CFG make ${CT_JOBSFLAGS} configure-libiberty
             CT_DoExecLog ALL make ${CT_JOBSFLAGS} -C libiberty libiberty.a
             CT_DoExecLog CFG make ${CT_JOBSFLAGS} configure-gcc configure-libcpp
-            CT_DoExecLog ALL make ${CT_JOBSFLAGS} all-libcpp
+            CT_DoExecLog ALL make ${CT_JOBSFLAGS} all-libcpp ${gcc_core_build_libcpp}
         else
             CT_DoExecLog CFG make ${CT_JOBSFLAGS} configure-gcc configure-libcpp configure-build-libiberty
-            CT_DoExecLog ALL make ${CT_JOBSFLAGS} all-libcpp all-build-libiberty
+            CT_DoExecLog ALL make ${CT_JOBSFLAGS} all-libcpp ${gcc_core_build_libcpp} all-build-libiberty
         fi
         # HACK: gcc-4.2 uses libdecnumber to build libgcc.mk, so build it here.
         if [ -d "${CT_SRC_DIR}/gcc/libdecnumber" ]; then
@@ -712,7 +714,7 @@ do_gcc_core_backend() {
     # to call the C compiler with the same, somewhat canonical name.
     # check whether compiler has an extension
     file="$( ls -1 "${prefix}/bin/${CT_TARGET}-${CT_CC}."* 2>/dev/null || true )"
-    [ -z "${file}" ] || ext=".${file##*.}"
+    [ -z "${file}" ] && ext="" || ext=".${file##*.}"
     if [ -f "${prefix}/bin/${CT_TARGET}-${CT_CC}${ext}" ]; then
         CT_DoExecLog ALL ln -sfv "${CT_TARGET}-${CT_CC}${ext}" "${prefix}/bin/${CT_TARGET}-cc${ext}"
     fi
@@ -723,8 +725,12 @@ do_gcc_core_backend() {
     # If binutils want the LTO plugin, point them to it
     if [ -d "${CT_PREFIX_DIR}/lib/bfd-plugins" -a "${build_step}" = "gcc_host" ]; then
         local gcc_version=$(cat "${CT_SRC_DIR}/gcc/gcc/BASE-VER" )
-        CT_DoExecLog ALL ln -sfv "../../libexec/gcc/${CT_TARGET}/${gcc_version}/liblto_plugin.so" \
-                "${CT_PREFIX_DIR}/lib/bfd-plugins/liblto_plugin.so"
+        local plugins_dir="libexec/gcc/${CT_TARGET}/${gcc_version}"
+        file="$( ls -1 "${CT_PREFIX_DIR}/${plugins_dir}/liblto_plugin."* 2>/dev/null | \
+            sort | head -n1 || true )"
+        [ -z "${file}" ] && ext="" || ext=".${file##*.}"
+        CT_DoExecLog ALL ln -sfv "../../${plugins_dir}/liblto_plugin${ext}" \
+                "${CT_PREFIX_DIR}/lib/bfd-plugins/liblto_plugin${ext}"
     fi
 }
 
@@ -908,6 +914,8 @@ do_gcc_backend() {
     local -a final_LDFLAGS
     local tmp
     local arg
+    local file
+    local ext
 
     for arg in "$@"; do
         eval "${arg// /\\ }"
@@ -1010,6 +1018,11 @@ do_gcc_backend() {
         fi
     fi
 
+    case "${CT_CC_GCC_LIBSTDCXX_VERBOSE}" in
+        y)  extra_config+=("--enable-libstdcxx-verbose");;
+        "") extra_config+=("--disable-libstdcxx-verbose");;
+    esac
+    
     if [ "${build_libstdcxx}" = "no" ]; then
         extra_config+=(--disable-libstdcxx)
     fi
@@ -1026,12 +1039,6 @@ do_gcc_backend() {
             host_libstdcxx_flags+=("-Wl,-Bstatic,-lstdc++")
             host_libstdcxx_flags+=("-lm")
         fi
-        # Companion libraries are build static (eg !shared), so
-        # the libstdc++ is not pulled automatically, although it
-        # is needed. Shoe-horn it in our LDFLAGS
-        # Ditto libm on some Fedora boxen
-        final_LDFLAGS+=("-lstdc++")
-        final_LDFLAGS+=("-lm")
     else
         if [ "${CT_CC_GCC_STATIC_LIBSTDCXX}" = "y" -a "${CT_GCC_older_than_6}" = "y" ]; then
             # this is from CodeSourcery arm-2010q1-202-arm-none-linux-gnueabi.src.tar.bz2
@@ -1042,12 +1049,6 @@ do_gcc_backend() {
             host_libstdcxx_flags+=("-Wl,-Bstatic,-lstdc++,-Bdynamic")
             host_libstdcxx_flags+=("-lm")
         fi
-        # When companion libraries are build static (eg !shared),
-        # the libstdc++ is not pulled automatically, although it
-        # is needed. Shoe-horn it in our LDFLAGS
-        # Ditto libm on some Fedora boxen
-        final_LDFLAGS+=("-lstdc++")
-        final_LDFLAGS+=("-lm")
     fi
 
     extra_config+=("--with-gmp=${complibs}")
@@ -1268,7 +1269,7 @@ do_gcc_backend() {
     # to call the C compiler with the same, somewhat canonical name.
     # check whether compiler has an extension
     file="$( ls -1 "${CT_PREFIX_DIR}/bin/${CT_TARGET}-${CT_CC}."* 2>/dev/null || true )"
-    [ -z "${file}" ] || ext=".${file##*.}"
+    [ -z "${file}" ] && ext="" || ext=".${file##*.}"
     if [ -f "${CT_PREFIX_DIR}/bin/${CT_TARGET}-${CT_CC}${ext}" ]; then
         CT_DoExecLog ALL ln -sfv "${CT_TARGET}-${CT_CC}${ext}" "${prefix}/bin/${CT_TARGET}-cc${ext}"
     fi
@@ -1279,7 +1280,11 @@ do_gcc_backend() {
     # If binutils want the LTO plugin, point them to it
     if [ -d "${CT_PREFIX_DIR}/lib/bfd-plugins" -a "${build_step}" = "gcc_host" ]; then
         local gcc_version=$(cat "${CT_SRC_DIR}/gcc/gcc/BASE-VER" )
-        CT_DoExecLog ALL ln -sfv "../../libexec/gcc/${CT_TARGET}/${gcc_version}/liblto_plugin.so" \
-                "${CT_PREFIX_DIR}/lib/bfd-plugins/liblto_plugin.so"
+        local plugins_dir="libexec/gcc/${CT_TARGET}/${gcc_version}"
+        file="$( ls -1 "${CT_PREFIX_DIR}/${plugins_dir}/liblto_plugin."* 2>/dev/null | \
+            sort | head -n1 || true )"
+        [ -z "${file}" ] && ext="" || ext=".${file##*.}"
+        CT_DoExecLog ALL ln -sfv "../../${plugins_dir}/liblto_plugin${ext}" \
+                "${CT_PREFIX_DIR}/lib/bfd-plugins/liblto_plugin${ext}"
     fi
 }
