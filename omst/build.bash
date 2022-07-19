@@ -20,6 +20,15 @@ container_create()
     docker build -t crosstool-ng "$BASE/omst"
 }
 
+menuconfig()
+{
+    ct-ng "$1" || die "configuration"
+    ct-ng upgradeconfig || die "upgrading configuration"
+    ct-ng menuconfig || die "menuconfig"
+    ct-ng savedefconfig || die "savedefconfig"
+    cp -v defconfig samples/"$1"/crosstool.config || die "saving defconfig"
+}
+
 # Install crosstool-ng tools.
 xtool_bootstrap()
 {
@@ -63,7 +72,21 @@ case "$1" in
         xtool_bootstrap
         build
         ;;
-
+    menuconfig)
+	menuconfig "$2"
+	;;
+    update)
+        docker run \
+               --read-only \
+               --tmpfs /run \
+               --tmpfs /tmp \
+               -v "$BASE:/xtool" \
+               -i \
+               -a stdin \
+               -a stdout \
+               -t "crosstool-ng" \
+               /bin/bash /xtool/omst/build.bash menuconfig "$2"
+	;;
     *)
         container_create || die "create container"
 

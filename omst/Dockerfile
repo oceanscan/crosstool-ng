@@ -20,7 +20,7 @@
 # Author: Ricardo Martins                                                 #
 ###########################################################################
 
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 MAINTAINER Ricardo Martins <rasm@oceanscan-mst.com>
 
@@ -47,4 +47,4 @@ RUN apt-get update -y && apt-get dist-upgrade -y && apt-get install -y \
     make \
     libtool \
     libtool-bin \
-    libncurses-dev
+    libncurses5-dev
