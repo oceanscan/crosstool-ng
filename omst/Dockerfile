@@ -20,14 +20,13 @@
 # Author: Ricardo Martins                                                 #
 ###########################################################################
 
-FROM ubuntu:18.04
-
-MAINTAINER Ricardo Martins <rasm@oceanscan-mst.com>
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Update distro.
-RUN apt-get update -y && apt-get dist-upgrade -y && apt-get install -y \
+RUN apt update -y
+RUN apt install -y \
     wget \
     bzip2 \
     git \
@@ -47,4 +46,6 @@ RUN apt-get update -y && apt-get dist-upgrade -y && apt-get install -y \
     make \
     libtool \
     libtool-bin \
-    libncurses5-dev
+    libncurses-dev \
+    rsync \
+    python3 \
