@@ -1,11 +1,11 @@
 #! /bin/bash
 
-VERSION='2018.05.00'
+VERSION='2023.03.00'
 BASE="$(readlink -f "$(dirname "$BASH_SOURCE")/..")"
 GIT_REV=`git -C $BASE rev-parse --short HEAD`
 FULL_VERSION="$VERSION-$GIT_REV"
 DST="$BASE/dist"
-TCHAINS='omst-p6 omst-amd64 omst-cortexa53 omst-cortexa8 omst-geode omst-goldmont omst-cortexa72'
+TCHAINS='omst-p6 omst-amd64 omst-cortexa53 omst-cortexa8 omst-geode omst-goldmont omst-cortexa72 omst-cortexa72-x64'
 
 export PATH="$BASE/local/bin:$PATH"
 
