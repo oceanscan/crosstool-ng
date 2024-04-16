@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.71])
+AC_PREREQ([2.69])
 
 AC_INIT(
     [crosstool-NG],
@@ -161,10 +161,6 @@ AC_CHECK_PROGS([ninja], [ninja])
 CTNG_SET_KCONFIG_OPTION([ninja])
 AC_SUBST([ninja])
 
-AC_CHECK_PROGS([rsync], [rsync])
-CTNG_SET_KCONFIG_OPTION([rsync])
-AC_SUBST([rsync])
-
 CTNG_CPU_COUNT
 
 CTNG_PATH_TOOL_REQ([PATCH], [gpatch patch], [patch])
@@ -175,12 +171,12 @@ AS_IF([$PATCH --no-backup-if-mismatch </dev/null >/dev/null 2>&1],
       AC_MSG_RESULT([yes]),
       AC_MSG_ERROR([$PATCH does not support --no-backup-if-mismatch]))
 
-# We need a bash that is >= 3.1
+# We need a bash that is >= 4.0
 CTNG_PROG_VERSION_REQ_STRICT([BASH_SHELL],
-    [GNU bash >= 3.1],
+    [GNU bash >= 4.0],
     [bash],
     [bash],
-    [^GNU bash, version (3\.[1-9]|4|5)])
+    [^GNU bash, version (4|5)])
 
 # We need a awk that *is* GNU awk
 CTNG_PROG_VERSION_REQ_STRICT([AWK],
@@ -210,6 +206,13 @@ CTNG_PROG_VERSION_REQ_ANY([MAKE],
     [^GNU Make [4-9]\.],
     [make_4_0_or_newer])
 
+CTNG_PROG_VERSION_REQ_ANY([MAKE],
+    [GNU make >= 4.4],
+    [make],
+    [gmake make],
+    [^GNU Make (4\.[4-9]|[5-9]\.)],
+    [make_4_4_or_newer])
+
 # Check other companion tools that we may or may not build.
 CTNG_PROG_VERSION_REQ_ANY([LIBTOOL],
     [GNU libtool >= 2.4],
@@ -226,25 +229,25 @@ CTNG_PROG_VERSION_REQ_ANY([LIBTOOLIZE],
     [libtoolize_2_4_or_newer])
 
 CTNG_PROG_VERSION([AUTOCONF],
-    [GNU autoconf >= 2.71],
+    [GNU autoconf >= 2.65],
     [autoconf],
     [autoconf],
     [\(GNU Autoconf\) ([3-9]\.|2\.[7-9][0-9]|2\.6[5-9])],
-    [autoconf_2_71_or_newer])
+    [autoconf_2_65_or_newer])
 
 CTNG_PROG_VERSION([AUTORECONF],
-    [GNU autoreconf >= 2.71],
+    [GNU autoreconf >= 2.63],
     [autoreconf],
     [autoreconf],
     [\(GNU Autoconf\) ([3-9]\.|2\.[7-9][0-9]|2\.6[5-9])],
-    [autoreconf_2_71_or_newer])
+    [autoreconf_2_65_or_newer])
 
 CTNG_PROG_VERSION([AUTOMAKE],
-    [GNU automake >= 1.16],
+    [GNU automake >= 1.15],
     [automake],
     [automake],
     [\(GNU automake\) ([2-9]\.|1\.[2-9][0-9]|1\.1[5-9])],
-    [automake_1_16_or_newer])
+    [automake_1_15_or_newer])
 
 CTNG_PROG_VERSION([M4],
     [GNU m4 >= 1.4.12],
@@ -253,19 +256,11 @@ CTNG_PROG_VERSION([M4],
     [\(GNU M4\) ([2-9]\.|1\.[5-9]|1\.[1-4][0-9]|1\.4\.[2-9][0-9]|1\.4\.1[2-9])],
     [gnu_m4_1_4_12_or_newer])
 
-CTNG_PROG_VERSION([PYTHON],
-    [Python],
-    [python],
-    [python37 python3.7 python36 python3.6 python35 python3.5 python34 python3.4 python33 python3.3 python32 python3.2 python31 python3.1 python3 python27 python2.7 python26 python2.6 python2 python],
-    [^Python [23]\.],
-    [python])
+# Check for Python
+CTNG_PYTHON
 
-CTNG_PROG_VERSION([PYTHON],
-    [Python >= 3.4],
-    [python],
-    [python37 python3.7 python36 python3.6 python35 python3.5 python34 python3.4 python3 python],
-    [^Python 3\.([4-9]|[1-9][0-9]+)\.],
-    [python_3_4_or_newer])
+# Check for Python 3.4 or newer
+CTNG_PYTHON_VERSION([3],[4])
 
 CTNG_PROG_VERSION_REQ_ANY([BISON],
     [bison >= 2.7],

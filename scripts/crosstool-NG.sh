@@ -264,7 +264,7 @@ fi
 
 # Good, now grab a bit of informations on the system we're being run on,
 # just in case something goes awok, and it's not our fault:
-CT_SYS_USER=$(id -un)
+CT_SYS_USER=$(id -un 2>/dev/null || echo "unknown")
 CT_SYS_HOSTNAME=$(hostname -f 2>/dev/null || true)
 # Hmmm. Some non-DHCP-enabled machines do not have an FQDN... Fall back to node name.
 CT_SYS_HOSTNAME="${CT_SYS_HOSTNAME:-$(uname -n)}"
@@ -437,7 +437,7 @@ if [ -z "${CT_RESTART}" ]; then
             t="${!r}-"
         fi
 
-        for tool in ar as dlltool gcc g++ gcj gnatbind gdc gnatmake ld libtool nm objcopy objdump ranlib strip windres; do
+        for tool in ar as dlltool gcc gcc-ar gcc-nm gcc-ranlib g++ gcj gnatbind gdc gnatmake gnatls gnatlink ld libtool nm objcopy objdump ranlib strip windres; do
             # First try with prefix + suffix
             # Then try with prefix only
             # Then try with suffix only, but only for BUILD, and HOST iff REAL_BUILD == REAL_HOST
@@ -485,9 +485,20 @@ if [ -z "${CT_RESTART}" ]; then
                     # If any other is missing, only warn at low level
                     *)
                         # It does not deserve a WARN level.
+                        # TBD Do we want to check for tools required by specific languages here? i.e gnat* if Ada is selected.
                         CT_DoLog DEBUG "  Missing: '${t}${tool}${!s}' or '${t}${tool}' or '${tool}' : not required."
                         ;;
                 esac
+            fi
+        done
+
+        # Incase the toolchain is built using plugins (-flto),
+        # the gcc wrappers are needed for older binutils
+        for tool in ar nm ranlib; do
+            if [ -x "${CT_BUILDTOOLS_PREFIX_DIR}/bin/${!v}-gcc-${tool}" ]; then
+                CT_DoLog DEBUG "  '${!v}-${tool}' -> '${!v}-gcc-${tool}'"
+                # this already is a script, so just copy over
+                CT_DoExecLog ALL cp "${CT_BUILDTOOLS_PREFIX_DIR}/bin/${!v}-gcc-${tool}" "${CT_BUILDTOOLS_PREFIX_DIR}/bin/${!v}-${tool}"
             fi
         done
     done

@@ -66,16 +66,24 @@ do_debug_gdb_build()
         # version of expat and will attempt to link that, despite the -static flag.
         # The link will fail, and configure will abort with "expat missing or unusable"
         # message.
-        extra_config+=("--with-expat")
-        extra_config+=("--without-libexpat-prefix")
+        cross_extra_config+=("--with-expat")
+        cross_extra_config+=("--without-libexpat-prefix")
 
+        # ct-ng always builds ncurses in cross mode as a static library.
+        # Starting from the patchset 20200718 ncurses defines a special macro
+        # NCURSES_STATIC for a static library. This is critical for mingw host
+        # platform.
+        #
+        # The problem is that the macro must be defined in a user program too,
+        # not just in ncurses. It won't hurt if we define it here.
         do_gdb_backend \
             buildtype=cross \
             host="${CT_HOST}" \
-            cflags="${CT_CFLAGS_FOR_HOST}" \
+            cflags="${CT_CFLAGS_FOR_HOST} -DNCURSES_STATIC" \
             ldflags="${CT_LDFLAGS_FOR_HOST}" \
             prefix="${CT_PREFIX_DIR}" \
             static="${CT_GDB_CROSS_STATIC}" \
+            static_libstdcxx="${CT_GDB_CROSS_STATIC}" \
             --with-sysroot="${CT_SYSROOT_DIR}"          \
             "${cross_extra_config[@]}"
 
@@ -113,6 +121,14 @@ do_debug_gdb_build()
         CT_mkdir_pushd "${CT_BUILD_DIR}/build-gdb-native"
 
         native_extra_config+=("--program-prefix=")
+
+        # Starting from GDB 11.x, gmp is needed as a dependency to build full
+        # gdb. And if target GMP gets built, explicitly point to installed library,
+        # as otherwise host library might be attempted to be used for target binary
+        # linkage.
+        if [ "${CT_GMP_TARGET}" = "y" ]; then
+            native_extra_config+=("--with-libgmp-prefix=${CT_SYSROOT_DIR}")
+        fi
 
         # gdbserver gets enabled by default with gdb
         # since gdbserver was promoted to top-level
@@ -159,16 +175,7 @@ do_debug_gdb_build()
         # where libexpat for build platform lives, which is
         # unacceptable for cross-compiling.
         #
-        # To prevent this '--without-libexpat-prefix' flag must be passed.
-        # Thus configure falls back to '-lexpat', which is exactly what we want.
-        #
-        # NOTE: DO NOT USE --with-libexpat-prefix (until GDB configure is smarter)!!!
-        # It conflicts with a static build: GDB's configure script will find the shared
-        # version of expat and will attempt to link that, despite the -static flag.
-        # The link will fail, and configure will abort with "expat missing or unusable"
-        # message.
-        extra_config+=("--with-expat")
-        extra_config+=("--without-libexpat-prefix")
+        native_extra_config+=("--with-expat=${CT_BUILDTOOLS_PREFIX_DIR}")
 
         do_gdb_backend \
             buildtype=native \
@@ -177,7 +184,7 @@ do_debug_gdb_build()
             cflags="${CT_ALL_TARGET_CFLAGS}" \
             ldflags="${CT_ALL_TARGET_LDFLAGS}" \
             static="${CT_GDB_NATIVE_STATIC}" \
-            static_libstdc="${CT_GDB_NATIVE_STATIC_LIBSTDC}" \
+            static_libstdcxx="${CT_GDB_NATIVE_STATIC_LIBSTDCXX}" \
             prefix=/usr \
             destdir="${CT_DEBUGROOT_DIR}" \
             "${native_extra_config[@]}"
@@ -245,8 +252,9 @@ do_debug_gdb_build()
 
 do_gdb_backend()
 {
-    local host prefix destdir cflags ldflags static buildtype subdir
+    local host prefix destdir cflags ldflags static buildtype subdir includedir
     local -a extra_config
+    local -a extra_make_flags
 
     for arg in "$@"; do
         case "$arg" in
@@ -277,7 +285,6 @@ do_gdb_backend()
     fi
 
     if [ "${static}" = "y" ]; then
-        cflags+=" -static"
         ldflags+=" -static"
         # There is no static libsource-highlight
         extra_config+=("--disable-source-highlight")
@@ -308,6 +315,17 @@ do_gdb_backend()
         CT_mkdir_pushd "${subdir}"
     fi
 
+    # Use a relative path for include directory if gdb or gdbserver
+    # is being built and installed for a target. Otherwise headers
+    # are installed in ${destdir}${CT_HEADERS_DIR} - a concatenation
+    # of ${destdir} and an absolute path to sysroot's include directory.
+    # As a result debug-root may contain wrong paths for includes.
+    if [ -n "${destdir}" ]; then
+        includedir="/usr/include"
+    else
+        includedir=${CT_HEADERS_DIR}
+    fi
+
     # TBD: is passing CPP/CC/CXX/LD needed? GCC should be determining this automatically from the triplets
     CT_DoExecLog CFG                                \
     CPP="${host}-cpp"                               \
@@ -324,12 +342,22 @@ do_gdb_backend()
         --target=${CT_TARGET}                       \
         --prefix="${prefix}"                        \
         --with-build-sysroot="${CT_SYSROOT_DIR}"    \
-        --includedir="${CT_HEADERS_DIR}"            \
+        --includedir="${includedir}"                \
         --disable-werror                            \
         "${extra_config[@]}"                        \
 
+    if [ "${static}" = "y" ]; then
+        if [ "${GDB_CC_LD_LIBTOOL}" = "y" ]; then
+            extra_make_flags+=("LDFLAGS=${ldflags} -all-static")
+        else
+            extra_make_flags+=("LDFLAGS=${ldflags} -static")
+        fi
+        CT_DoLog EXTRA "Prepare gdb for static build"
+        CT_DoExecLog ALL make ${CT_JOBSFLAGS} configure-host
+    fi
+
     CT_DoLog EXTRA "Building ${buildtype} gdb"
-    CT_DoExecLog ALL make ${CT_JOBSFLAGS}
+    CT_DoExecLog ALL make "${extra_make_flags[@]}" ${CT_JOBSFLAGS}
 
     CT_DoLog EXTRA "Installing ${buildtype} gdb"
     CT_DoExecLog ALL make install ${destdir:+DESTDIR="${destdir}"}

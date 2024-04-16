@@ -176,9 +176,11 @@ do_binutils_backend() {
 
     [ "${CT_TOOLCHAIN_ENABLE_NLS}" != "y" ] && extra_config+=("--disable-nls")
 
-    # Disable usage of glob for higher compatibility.
-    # Not strictly needed for anything but GDB anyways.
-    export ac_cv_func_glob=no
+    if [ "${CT_COMP_LIBS_ZSTD}}" = "y" ]; then
+        extra_config+=("--with-zstd=${complibs}")
+    else
+        extra_config+=("--without-zstd")
+    fi
 
     CT_DoLog DEBUG "Extra config passed: '${extra_config[*]}'"
 
@@ -289,7 +291,7 @@ do_elf2flt_backend() {
         --prefix=${prefix}                                      \
         --with-bfd-include-dir=${binutils_bld}/bfd              \
         --with-binutils-include-dir=${binutils_src}/include     \
-        --with-libbfd=${binutils_bld}/bfd/libbfd.a              \
+        --with-libbfd=${binutils_bld}/bfd/.libs/libbfd.a        \
         --with-libiberty=${binutils_bld}/libiberty/libiberty.a  \
         --disable-werror                                        \
         ${elf2flt_opts}                                         \

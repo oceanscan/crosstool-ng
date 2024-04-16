@@ -392,6 +392,14 @@ do_gcc_core_backend() {
         extra_config+=(--disable-libstdcxx)
     fi
 
+    if [ "${CT_LIBC_PICOLIBC}" = "y" ]; then
+	extra_config+=("--with-default-libc=picolibc")
+	extra_config+=("--enable-stdio=pure")
+	if [ "${CT_PICOLIBC_older_than_1_8}" = "y" ]; then
+	    extra_config+=("--disable-wchar_t")
+	fi
+    fi
+
     core_LDFLAGS+=("${ldflags}")
 
     # *** WARNING ! ***
@@ -532,6 +540,9 @@ do_gcc_core_backend() {
         extra_config+=("--enable-multiarch")
         if [ -n "${CT_CC_GCC_MULTILIB_LIST}" ]; then
             extra_config+=("--with-multilib-list=${CT_CC_GCC_MULTILIB_LIST}")
+        fi
+        if [ -n "${CT_CC_GCC_MULTILIB_GENERATOR}" ]; then
+            extra_config+=("--with-multilib-generator=${CT_CC_GCC_MULTILIB_GENERATOR}")
         fi
     fi
 
@@ -1041,6 +1052,14 @@ do_gcc_backend() {
     
     if [ "${build_libstdcxx}" = "no" ]; then
         extra_config+=(--disable-libstdcxx)
+    elif [ "${CT_CC_GCC_EXTRA_LIBSTDCXX}" = "y" ]; then
+        extra_config+=(--enable-libstdcxx)
+    fi
+
+    if [ "${CT_LIBC_PICOLIBC}" = "y" ]; then
+	extra_config+=("--with-default-libc=picolibc")
+	extra_config+=("--enable-stdio=pure")
+	extra_config+=("--disable-wchar_t")
     fi
 
     final_LDFLAGS+=("${ldflags}")
@@ -1187,6 +1206,9 @@ do_gcc_backend() {
         extra_config+=("--enable-multiarch")
         if [ -n "${CT_CC_GCC_MULTILIB_LIST}" ]; then
             extra_config+=("--with-multilib-list=${CT_CC_GCC_MULTILIB_LIST}")
+        fi
+        if [ -n "${CT_CC_GCC_MULTILIB_GENERATOR}" ]; then
+            extra_config+=("--with-multilib-generator=${CT_CC_GCC_MULTILIB_GENERATOR}")
         fi
     fi
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
+# -*- mode: bash; tab-width: 4 -*-
 # vi: ts=4:sw=4:et
+# vim: filetype=bash
 
 if [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
     echo "Your BASH shell version (${BASH_VERSION}) is too old." >&2
@@ -802,7 +804,7 @@ msg "*** Gathering the list of data files to install"
 {
     declare -A seen_files
     echo -n "verbatim_data ="
-    find COPYING config contrib licenses.d packages samples scripts -type f | LANG=C sort | while read f; do
+    find -L COPYING config contrib licenses.d packages samples scripts -type f | LANG=C sort | while read f; do
         # Implement some kind of .installignore for these files?
         case "${f}" in
             # Avoid temp files

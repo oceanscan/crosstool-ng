@@ -1,3 +1,4 @@
+---
 name: Build toolchains
 
 on:
@@ -43,37 +44,39 @@ jobs:
         run: |
           cd ..
           rmdir crosstool-ng
-          hdiutil create ${HOME}/Workspace.sparseimage -volname crosstool-ng -type SPARSE -size 20g -fs HFSX
-          hdiutil mount ${HOME}/Workspace.sparseimage -mountroot /Users/runner/work/crosstool-ng
+          hdiutil create "${HOME}/Workspace.sparseimage" -volname crosstool-ng -type SPARSE -size 20g -fs HFSX
+          hdiutil mount "${HOME}/Workspace.sparseimage" -mountroot /Users/runner/work/crosstool-ng
           cd crosstool-ng
       - name: download ct-ng
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: crosstool.${{ matrix.host }}
       - name: extract ct-ng
         run: |
           tar -xf ct-ng.tar
       - name: download tarballs
-        uses: actions/download-artifact@v3
+        uses: actions/cache/restore@v4
         with:
-          name: src.tar
+          path: src.tar
+          key: src.tar-${{ hashFiles('.local/share/crosstool-ng/packages') }}-${{ hashFiles('.local/share/crosstool-ng/samples') }}
       - name: extract tarballs
+        continue-on-error: true
         run: |
           tar -xvf src.tar
       - name: prereq Linux
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt-get install -y gperf help2man libtool-bin meson ninja-build
-          echo "${{ github.workspace }}/.local/bin" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/.local/bin" >> "$GITHUB_PATH"
       - name: prereq macOS
         if: ${{ runner.os == 'macOS' }}
         run: |
           brew install autoconf automake bash binutils gawk gnu-sed \
                gnu-tar help2man make ncurses pkg-config
-          echo "${{ github.workspace }}/.local/bin" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/.local/bin" >> "$GITHUB_PATH"
       - name: download x86_64-w64-mingw32.${{ matrix.host }} tarball
         if: ${{ inputs.canadian-cross }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: x86_64-w64-mingw32.${{ matrix.host }}.tar
       - name: install x86_64-w64-mingw32.${{ matrix.host }} toolchain
@@ -82,7 +85,7 @@ jobs:
           mkdir -p ${{ github.workspace }}/x86_64-w64-mingw32
           tar -C ${{ github.workspace }}/x86_64-w64-mingw32 \
               -xf x86_64-w64-mingw32.${{ matrix.host }}.tar
-          echo "${{ github.workspace }}/x86_64-w64-mingw32/bin" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/x86_64-w64-mingw32/bin" >> "$GITHUB_PATH"
       - name: build ${{ matrix.sample }} for ${{ matrix.host }}
         run: |
           mkdir -p src
@@ -90,6 +93,7 @@ jobs:
           sed -i -e '/CT_LOG_PROGRESS_BAR/s/y$/n/' .config
           sed -i -e '/CT_LOCAL_TARBALLS_DIR/s/HOME/CT_TOP_DIR/' .config
           sed -i -e '/CT_PREFIX_DIR/s/HOME/CT_TOP_DIR/' .config
+          sed -i -e '/CT_GLIBC_ENABLE_DEBUG/s/y$/n/' .config
           test ${{ matrix.host }} = "macos-latest" && sed -i -e '/CT_GDB_CROSS_PYTHON/s/y$/n/' .config
           ct-ng build
       - name: create ${{ matrix.sample }}.${{ matrix.host }} tarball
@@ -99,13 +103,13 @@ jobs:
               -cf ${{ matrix.sample }}.${{ matrix.host }}.tar .
       - name: upload ${{ matrix.sample }}.${{ matrix.host }} tarball
         if: ${{ matrix.sample == 'x86_64-w64-mingw32' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.sample }}.${{ matrix.host }}.tar
           path: |
             ${{ matrix.sample }}.${{ matrix.host }}.tar
       - name: upload log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.sample }}.${{ matrix.host }}.log
           path: |
