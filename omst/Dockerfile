@@ -49,3 +49,7 @@ RUN apt install -y \
     libncurses-dev \
     rsync \
     python3 \
+    build-essential
+
+# Clean up the package lists to reduce image size
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
