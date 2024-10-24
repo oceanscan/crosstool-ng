@@ -1,11 +1,13 @@
 #! /bin/bash
 
-VERSION='2023.03.00'
+VERSION='2024.10.03'
 BASE="$(readlink -f "$(dirname "$BASH_SOURCE")/..")"
 GIT_REV=`git -C $BASE rev-parse --short HEAD`
 FULL_VERSION="$VERSION-$GIT_REV"
 DST="$BASE/dist"
 TCHAINS='omst-p6 omst-amd64 omst-cortexa53 omst-cortexa8 omst-geode omst-goldmont omst-cortexa72 omst-cortexa72-x64'
+#TCHAINS='omst-tremont"
+#TCHAINS='omst-cortexa76"
 
 export PATH="$BASE/local/bin:$PATH"
 
@@ -42,6 +44,7 @@ xtool_bootstrap()
 build()
 {
     mkdir -p "$BASE/src" "$BASE/dist" || die "create folders"
+    git config --global --add safe.directory /xtool
 
     # Build toolchains.
     for t in $TCHAINS; do
