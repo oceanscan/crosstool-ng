@@ -10,19 +10,19 @@ jobs:
     runs-on: ${{ matrix.host }}
     strategy:
       matrix:
-        host: ["ubuntu-22.04", "macos-latest"]
+        host: ["ubuntu-22.04", "macos-12"]
     steps:
       - name: "clone"
         uses: actions/checkout@v4
       - name: "prereq Linux"
         if: ${{ runner.os == 'Linux' }}
         run: |
-          sudo apt-get install -y gperf help2man libtool-bin meson ninja-build
+          sudo apt-get update && sudo apt-get install -y bison flex gperf help2man libtool-bin meson ninja-build texinfo
       - name: "prereq macOS"
         if: ${{ runner.os == 'macOS' }}
         run: |
           brew install autoconf automake bash binutils gawk gnu-sed \
-               gnu-tar help2man make ncurses
+               gnu-tar help2man libtool make meson ncurses ninja texinfo
       - name: "build ct-ng"
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
@@ -80,7 +80,7 @@ jobs:
       - name: "prereq Linux"
         if: ${{ runner.os == 'Linux' }}
         run: |
-          sudo apt-get install -y gperf help2man libtool-bin
+          sudo apt-get update && sudo apt-get install -y bison flex gperf help2man libtool-bin texinfo
           echo "$GITHUB_WORKSPACE/.local/bin" >> "$GITHUB_PATH"
       - name: "ct-ng source"
         run: |
@@ -126,6 +126,7 @@ jobs:
           "mips64-unknown-linux-gnu",
           "powerpc-unknown-linux-gnu",
           "powerpc64-unknown-linux-gnu",
+          "powerpc64-unknown-linux-musl",
           "riscv32-unknown-elf",
           "riscv64-unknown-elf",
           "s390-unknown-linux-gnu",

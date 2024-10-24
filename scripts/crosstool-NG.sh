@@ -361,10 +361,12 @@ if [ -z "${CT_RESTART}" ]; then
         # binutils 2.14 and later obey it, older binutils ignore it.
         # Lets you build a working 32->64 bit cross gcc
         CT_BINUTILS_SYSROOT_ARG="--with-sysroot=${CT_SYSROOT_DIR}"
-        # Use --with-headers, else final gcc will define disable_glibc while
-        # building libgcc, and you'll have no profiling
         CT_CC_CORE_SYSROOT_ARG=("--without-headers")
-        CT_CC_SYSROOT_ARG=("--with-headers=${CT_HEADERS_DIR}")
+        if [ "${CT_LIBC_GLIBC}" = "y" ]; then
+            # Use --with-headers, else final gcc will define disable_glibc while
+            # building libgcc, and you'll have no profiling
+            CT_CC_SYSROOT_ARG=("--with-headers=${CT_HEADERS_DIR}")
+        fi
     fi
     CT_DoExecLog ALL mkdir -p "${CT_SYSROOT_DIR}"
     CT_DoExecLog ALL mkdir -p "${CT_DEBUGROOT_DIR}"
@@ -660,6 +662,7 @@ if [ -z "${CT_RESTART}" ]; then
     do_companion_libs_get
     do_binutils_get
     do_cc_get
+    do_linker_get
     do_libc_get
     do_debug_get
     do_test_suite_get
@@ -677,6 +680,7 @@ if [ -z "${CT_RESTART}" ]; then
         do_companion_libs_extract
         do_binutils_extract
         do_cc_extract
+        do_linker_extract
         do_libc_extract
         do_debug_extract
         do_test_suite_extract
