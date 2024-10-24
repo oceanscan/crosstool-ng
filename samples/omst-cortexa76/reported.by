@@ -1,0 +1,7 @@
+reporter_name="Renato Campos <rcampos@oceanscan-mst.com>"
+reporter_url="http://www.oceanscan-mst.com"
+reporter_comment="Configuration for ARM Cortex-A76 (ARMv8.2-A 64bit)
+
+Tested boards:
+ - Raspberry Pi 5
+"
